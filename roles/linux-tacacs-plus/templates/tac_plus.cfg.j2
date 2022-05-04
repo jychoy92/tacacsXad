@@ -1,0 +1,115 @@
+#!/usr/local/sbin/tac_plus
+id = spawnd {
+    listen = { address = 0.0.0.0 port = 49 }
+    spawn = {
+        instances min = 1
+        instances max = 10
+    }
+    background = yes
+}
+id = tac_plus {
+    access log = /var/log/tac_plus/access/%Y/%m/access-%m-%d-%Y.txt
+    accounting log = /var/log/tac_plus/accounting/%Y/%m/accounting-%m-%d-%Y.txt
+    authentication log = /var/log/tac_plus/authentication/%Y/%m/authentication-%m-%d-%Y.txt
+    #ZY clears context cache entries after 60s of inactivity
+    context timeout = 30
+
+    mavis module = external {
+        setenv LDAP_SERVER_TYPE = "microsoft"
+
+        #If you are using Microsoft Global Catalog with secure LDAP (SSL)
+        #setenv LDAP_HOSTS = "ldaps://172.16.10.10:3269"
+
+        #If you are using Microsoft Global Catalog with regular LDAP (non-SSL)
+        setenv LDAP_HOSTS = "ldap://{{ldap_server_ip}}:3268"
+
+        setenv LDAP_BASE = "{{ldap_base_dn}}"
+        setenv LDAP_SCOPE = sub
+        ## Username ONLY Authentication
+        setenv LDAP_FILTER = "(&(objectClass=user)(objectClass=person)(sAMAccountName=%s))"
+
+        ## Username + UPN Authentication [example: user@mydomain.lan]
+        # setenv LDAP_FILTER = "(&(objectClass=user)(objectClass=person)(userPrincipalName=%s))"
+        setenv LDAP_USER = "{{ldap_auth_username}}"
+        setenv LDAP_PASSWD = "{{ldap_auth_password}}"
+        #Setting UNLIMIT_AD_GROUP_MEMBERSHIP to 0 will cause a NACK response if the AD account is a member of more than one security group
+        setenv UNLIMIT_AD_GROUP_MEMBERSHIP = 1
+        #I'm not 100% sure what EXPAND_AD_GROUP_MEMBERSHIP does
+        setenv EXPAND_AD_GROUP_MEMBERSHIP = 0
+        #Clear default setting of tacplus for AD_GROUP_PREFIX
+        setenv AD_GROUP_PREFIX = ""
+        #Setting REQUIRE_TACACS_GROUP_PREFIX to 1 will cause a NACK response if the AD account is not a member of a security group with the required prefix
+        setenv REQUIRE_TACACS_GROUP_PREFIX = 1
+        #DO NOT SET THE USE_TLS ENVIRONMENT VARIABLE
+        #TLS WILL AUTOMATICALLY BE ENABLED IF NEEDED
+        #FORCING THIS VARIABLE TO 1 WILL BREAK MAVIS IF TLS IS NEEDED
+        #setenv USE_TLS = 0
+        exec = /usr/local/lib/mavis/mavis_tacplus_ldap.pl
+    }
+    login backend = mavis
+    user backend = mavis
+    pap backend = mavis
+    skip missing groups = yes
+    host = networkmgmt {
+        #Allow any IPv4 device
+        address = {{network_mgmt_subnet}}
+        key = "{{tacacs_encryption_key}}"
+    }
+
+    group = wlcadmin {
+            default service = permit
+            service = ciscowlc {
+            set role1 = ALL       }
+    }
+
+    group = wlcmonitor {
+        default service = deny
+        service = ciscowlc {
+        set role1 = MONITOR        }
+    }
+
+    group = {{tacacs_admin_group}} {
+        default service = permit
+        member = wlcadmin
+        service = shell  {
+            default command = permit
+            default attribute = permit
+            set priv-lvl = 15
+        }
+    }
+
+    group = {{tacacs_helpdesk_group}} {
+        default service = deny
+        service = shell {
+            set priv-lvl = 15
+            cmd = show { permit .* }
+            cmd = write { permit .* }
+            cmd = configure { permit terminal }
+            cmd = interface {
+                            permit TenGigabitEthernet
+                            permit GigabitEthernet }
+            cmd = switchport {
+                            permit "mode access"
+                            permit "mode trunk"
+                            permit "access vlan.*" }
+            cmd = exit { permit .* }
+            cmd = no {
+                    permit shutdown
+                    permit "switchport mode access"
+                    permit "switchport access vlan.*"
+                    }
+            cmd = shutdown {
+                        permit .* }
+        }
+        member = wlcmonitor
+    }
+
+    #For Security Team's Access##
+    group = {{tacacs_readonly_group}} {
+        default service = deny
+        service = shell {
+	   set priv-lvl = 15
+           cmd = show { permit .* }
+	}
+    }
+}

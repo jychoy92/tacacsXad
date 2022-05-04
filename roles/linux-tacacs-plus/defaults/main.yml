@@ -1,0 +1,9 @@
+---
+#### You can get the updated version from: https://www.pro-bono-publico.de/projects
+tacacs_download_url: https://www.pro-bono-publico.de/projects/src/DEVEL.202204241402.tar.bz2
+tacacs_package_path: packages/DEVEL.202204241402.tar.bz2
+tacacs_req_packages:
+  - build-essential
+  - libnet-ldap-perl
+  - libpcre3-dev
+

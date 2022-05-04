@@ -1,0 +1,71 @@
+---
+- name: Install TACACS required packages
+  apt:
+    name: "{{ tacacs_req_packages }}"
+    update_cache: yes
+  register: apt_results
+  until: not apt_results.failed
+
+
+## Online Method to download from cloud repo
+## You can update the version detail please check defaults variable
+- name: Download TACACS source code
+  get_url:
+    url: "{{ tacacs_download_url }}"
+    dest: /root/tacacs_plus.tar.bz2
+
+## Check if the application folder exists
+- name: Check TACACS source folder
+  stat:
+    path: /root/tacacs_plus
+  register: tacacs_plus_folder
+
+- name: Cleanup stale TACACS source folder
+  ansible.builtin.file:
+    path: /root/tacacs_plus
+    state: absent
+  when: tacacs_plus_folder.stat.exists
+
+## This will default to extract to the PROJECTS path name
+- name: Extract TACACS source code
+  ansible.builtin.unarchive:
+    src: /root/tacacs_plus.tar.bz2
+    dest: /root
+
+## Enable this only when Cloud repo not available, and diable the task "Download TACACS source code"
+#- name: Extract TACACS source code
+#  ansible.builtin.unarchive:
+#    src: "{{ tacacs_package_path }}"
+#    dest: /root
+#    remote_src: no
+
+
+- name: Rename TACACS source path
+  command: mv /root/PROJECTS /root/tacacs_plus
+
+- name: Compile TACACS application
+  shell: |
+    cd /root/tacacs_plus
+    sudo ./configure --etcdir=/etc/tac_plus
+    sudo make
+    sudo make install
+    sudo mkdir -p /var/log/tac_plus /var/log/tac_plus/access /var/log/tac_plus/accounting /var/log/tac_plus/authentication
+    sudo chmod -R 755 /var/log/tac_plus
+
+- name: Configure TACACS application
+  ansible.builtin.template:
+    src: templates/tac_plus.cfg.j2
+    dest: /etc/tac_plus/tac_plus.cfg
+    mode: 0755
+
+- name: Configure TACACS services
+  ansible.builtin.template:
+    src: templates/tac_plus.service.j2
+    dest: /etc/systemd/system/tac_plus.service
+    mode: 0755
+
+- name: Enable TACACS services
+  shell: |
+    sudo systemctl daemon-reload
+    sudo systemctl enable tac_plus.service
+    sudo systemctl start tac_plus.service

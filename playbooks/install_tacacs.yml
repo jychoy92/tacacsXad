@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    # Install TACACS Services
+    - name: "TACACS+ Installation"
+      block:
+        - name: "Install TACACS+ Services"
+          include_role:
+            name: ../roles/linux-tacacs-plus
