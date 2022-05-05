@@ -6,6 +6,14 @@
     + <img width="346" alt="image" src="https://user-images.githubusercontent.com/83763465/166823253-2cff1f0a-7785-4453-9481-77b15caac0e5.png">
 
 
+## TACACS+  Installation
+
+You can install the TACACS+ using the BASH script by running the following command:
+```
+wget https://github.com/jychoy92/tacacsXad/raw/main/install.sh -O install.sh; bash install.sh
+```
+This script will prompt you for the required variables listed in the Required Variable Settings section.
+
 ## Required Variables
 |Variable|Description|
 |-------------|-------------|
@@ -21,14 +29,6 @@
 |network_mgmt_subnet|Network Devices Management Subnet|
 
 ---
-
-## TACACS+  Installation
-
-You can install the TACACS+ using the BASH script by running the following command:
-```
-wget https://github.com/jychoy92/tacacsXad/raw/main/install.sh -O install.sh; bash install.sh
-```
-This script will prompt you for the required variables listed in the Required Variable Settings section.
 
 ## TACACS+ Troubleshooting
 
