@@ -60,19 +60,7 @@ function start_tacacs_installation() {
     echo -e "${BLUE}LDAP Query Service Account ID (e.g.: srv-tacacs@sg.sea.local)${NORMAL}"
     until [[ $ldap_auth_username ]]; do read -p "> " ldap_auth_username; done
     echo -e "${BLUE}LDAP Query Service Account Password${NORMAL}"
-    until [[ $ldap_auth_password ]]; #do read -sp "> " ldap_auth_password; done
-    
-    while read -sp "> " ldap_auth_password -r -s -n 1 char
-        do
-            if [[ $char == $'\0' ]]
-            then
-                break
-            fi
-            prompt='*'
-            password+="$char"
-    done
-    
-    
+    until [[ $ldap_auth_password ]]; do read -sp "> " ldap_auth_password; done    
     echo ''
     echo -e "${BLUE}Tacacs Admin AD Security Group Name (e.g.: TACACS-Admin)${NORMAL}"
     until [[ $tacacs_admin_group ]]; do read -p "> " tacacs_admin_group; done
