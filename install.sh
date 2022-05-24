@@ -62,7 +62,7 @@ function start_tacacs_installation() {
     echo -e "${BLUE}LDAP Query Service Account Password${NORMAL}"
     until [[ $ldap_auth_password ]]; #do read -sp "> " ldap_auth_password; done
     
-    while read -sp "> " ldap_auth_password -r -s -n 1 char;
+    while read -sp "> " ldap_auth_password -r -s -n 1 char
         do
             if [[ $char == $'\0' ]]
             then
