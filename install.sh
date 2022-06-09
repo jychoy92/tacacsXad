@@ -57,7 +57,7 @@ function start_tacacs_installation() {
     until [[ $ldap_server_ip ]]; do read -p "> " ldap_server_ip; done
     echo -e "${BLUE}LDAP Search Base DN (e.g.: OU=Guardians,DC=sg,DC=sea,DC=local)${NORMAL}"
     until [[ $ldap_base_dn ]]; do read -p "> " ldap_base_dn; done
-    echo -e "${BLUE}LDAP Query Service Account ID (e.g.: srv-tacacs@sg.sea.local)${NORMAL}"
+    echo -e "${BLUE}LDAP Query Service Account ID - FULL UPN (e.g.: srv-tacacs@sg.sea.local)${NORMAL}"
     until [[ $ldap_auth_username ]]; do read -p "> " ldap_auth_username; done
     echo -e "${BLUE}LDAP Query Service Account Password${NORMAL}"
     until [[ $ldap_auth_password ]]; do read -sp "> " ldap_auth_password; done    
